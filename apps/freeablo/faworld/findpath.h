@@ -18,6 +18,7 @@
 namespace FAWorld
 {
     class GameLevelImpl;
+    class Actor;
 
-    Misc::Points pathFind(GameLevelImpl* level, const Misc::Point& start, Misc::Point& goal, bool& bArrivable, bool findAdjacent);
+    Misc::Points pathFind(GameLevelImpl* level, const Actor* actor, const Misc::Point& start, Misc::Point& goal, bool& bArrivable, bool findAdjacent);
 }

@@ -28,7 +28,7 @@ namespace FAWorld
         return 0 <= x && x < (int)level->width() && 0 <= y && y < (int)level->height();
     }
 
-    Misc::Points neighbors(GameLevelImpl* level, Misc::Point location)
+    Misc::Points neighbors(GameLevelImpl* level, const Actor* actor, Misc::Point location)
     {
         int x = location.x;
         int y = location.y;
@@ -41,7 +41,7 @@ namespace FAWorld
             for (int32_t dx = -1; dx <= 1; dx++)
             {
                 Misc::Point next(x + dx, y + dy);
-                if (inBounds(level, next) && level->isPassable(next))
+                if (inBounds(level, next) && level->isPassable(next, actor))
                     result.push_back(next);
             }
         }
@@ -76,9 +76,14 @@ namespace FAWorld
         int32_t mHeight;
     };
 
-    bool AStarSearch(GameLevelImpl* level, Misc::Point start, Misc::Point& goal, std::unordered_map<Misc::Point, Misc::Point>& came_from, bool findAdjacent)
+    bool AStarSearch(GameLevelImpl* level,
+                     const Actor* actor,
+                     Misc::Point start,
+                     Misc::Point& goal,
+                     std::unordered_map<Misc::Point, Misc::Point>& came_from,
+                     bool findAdjacent)
     {
-        auto goalPassable = level->isPassable(goal);
+        bool goalPassable = level->isPassable(goal, actor);
         PriorityQueue<Misc::Point> frontier;
         frontier.put(start, 0);
         came_from[start] = start;
@@ -104,7 +109,7 @@ namespace FAWorld
                 }
             }
 
-            Misc::Points neighborsContainer = neighbors(level, current);
+            Misc::Points neighborsContainer = neighbors(level, actor, current);
             for (auto it = neighborsContainer.begin(); it != neighborsContainer.end(); it++)
             {
                 int32_t new_cost = costSoFar.get(current.x, current.y) + 1; // graph.cost(current, next);
@@ -134,6 +139,7 @@ namespace FAWorld
             if (current != start)
                 path.push_back(current);
         }
+        path.push_back(start);
         std::reverse(path.begin(), path.end());
         return path;
     }
@@ -163,11 +169,11 @@ namespace FAWorld
         return result;
     }
 
-    Misc::Points pathFind(GameLevelImpl* level, const Misc::Point& start, Misc::Point& goal, bool& bArrivable, bool findAdjacent)
+    Misc::Points pathFind(GameLevelImpl* level, const Actor* actor, const Misc::Point& start, Misc::Point& goal, bool& bArrivable, bool findAdjacent)
     {
         std::unordered_map<Misc::Point, Misc::Point> cameFrom;
 
-        bArrivable = AStarSearch(level, start, goal, cameFrom, findAdjacent);
+        bArrivable = AStarSearch(level, actor, start, goal, cameFrom, findAdjacent);
         if (!bArrivable)
             return {};
 
